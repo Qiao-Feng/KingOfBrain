@@ -6,7 +6,8 @@ import subprocess
 import os
 import sys
 from PIL import Image
-
+import time
+from colorama import init, Fore
 
 # SCREENSHOT_WAY 是截图方法，经过 check_screenshot 后，会自动递减，不需手动修改
 SCREENSHOT_WAY = 3
@@ -17,6 +18,8 @@ def pull_screenshot():
     获取屏幕截图，目前有 0 1 2 3 四种方法，未来添加新的平台监测方法时，
     可根据效率及适用性由高到低排序
     """
+    start = time.time()
+
     global SCREENSHOT_WAY
     if 1 <= SCREENSHOT_WAY <= 3:
         process = subprocess.Popen(
@@ -27,12 +30,18 @@ def pull_screenshot():
             binary_screenshot = binary_screenshot.replace(b'\r\n', b'\n')
         elif SCREENSHOT_WAY == 1:
             binary_screenshot = binary_screenshot.replace(b'\r\r\n', b'\n')
-        f = open('autojump.png', 'wb')
+        f = open('screenshot.png', 'wb')
         f.write(binary_screenshot)
         f.close()
     elif SCREENSHOT_WAY == 0:
-        os.system('adb shell screencap -p /sdcard/autojump.png')
-        os.system('adb pull /sdcard/autojump.png .')
+        os.system('adb shell screencap -p /sdcard/screenshot.png')
+        os.system('adb pull /sdcard/screenshot.png .')
+
+    end = time.time()
+    print(Fore.YELLOW + '+++++++++++++++++++++++++++++++++++++++++' + Fore.RESET)
+    print(Fore.GREEN + '+++' + 'pull_screenshot用时：' +
+          str(end - start) + '秒' + '+++' + Fore.RESET)
+    print(Fore.YELLOW + '+++++++++++++++++++++++++++++++++++++++++' + Fore.RESET)
 
 
 def check_screenshot():
@@ -40,9 +49,9 @@ def check_screenshot():
     检查获取截图的方式
     """
     global SCREENSHOT_WAY
-    if os.path.isfile('autojump.png'):
+    if os.path.isfile('screenshot.png'):
         try:
-            os.remove('autojump.png')
+            os.remove('screenshot.png')
         except Exception:
             pass
     if SCREENSHOT_WAY < 0:
@@ -50,7 +59,7 @@ def check_screenshot():
         sys.exit()
     pull_screenshot()
     try:
-        Image.open('./autojump.png').load()
+        Image.open('./screenshot.png').load()
         print('采用方式 {} 获取截图'.format(SCREENSHOT_WAY))
     except Exception:
         SCREENSHOT_WAY -= 1
